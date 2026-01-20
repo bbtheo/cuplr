@@ -1,0 +1,142 @@
+#!/bin/bash
+# configure - Detect CUDA and libcudf, generate src/Makevars
+
+echo "Configuring cuplr..."
+
+# Default paths
+CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
+CUDF_HOME="${CUDF_HOME:-}"
+CONDA_PREFIX="${CONDA_PREFIX:-}"
+
+# Function to find libcudf
+find_cudf() {
+    # Check if CUDF_HOME is set first (for pip installs)
+    if [ -n "$CUDF_HOME" ] && [ -d "$CUDF_HOME" ]; then
+        echo "$CUDF_HOME"
+        return 0
+    fi
+
+    # Try conda environment
+    if [ -n "$CONDA_PREFIX" ] && [ -f "$CONDA_PREFIX/include/cudf/cudf.hpp" ]; then
+        echo "$CONDA_PREFIX"
+        return 0
+    fi
+
+    # Try common installation paths
+    for path in /usr/local /opt/rapids /opt/conda /usr; do
+        if [ -f "$path/include/cudf/cudf.hpp" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Detect CUDA
+if [ ! -d "$CUDA_HOME" ]; then
+    for cuda_path in /usr/local/cuda /opt/cuda /opt/conda/targets/x86_64-linux /usr/lib/cuda; do
+        if [ -d "$cuda_path" ] && [ -f "$cuda_path/include/cuda.h" ]; then
+            CUDA_HOME="$cuda_path"
+            break
+        fi
+    done
+fi
+
+if [ ! -f "$CUDA_HOME/include/cuda.h" ]; then
+    echo "ERROR: CUDA not found. Please set CUDA_HOME environment variable."
+    echo "       Example: export CUDA_HOME=/usr/local/cuda"
+    exit 1
+fi
+
+echo "Found CUDA at: $CUDA_HOME"
+echo "CUDA version: $($CUDA_HOME/bin/nvcc --version | grep release | awk '{print $6}')"
+
+# Detect libcudf
+CUDF_PREFIX=$(find_cudf)
+if [ -z "$CUDF_PREFIX" ]; then
+    echo "ERROR: libcudf not found. Please install RAPIDS or set CUDF_HOME."
+    echo ""
+    echo "Installation options:"
+    echo "  1. Conda: conda install -c rapidsai -c conda-forge -c nvidia libcudf"
+    echo "  2. Pip:   pip install libcudf-cu12"
+    echo "  3. Set:   export CUDF_HOME=/path/to/cudf"
+    exit 1
+fi
+
+CUDF_INCLUDE="$CUDF_PREFIX/include"
+
+# Handle both lib and lib64 directories (FIX: check BEFORE using variable)
+if [ -d "$CUDF_PREFIX/lib64" ] && [ -f "$CUDF_PREFIX/lib64/libcudf.so" ]; then
+    CUDF_LIB="$CUDF_PREFIX/lib64"
+else
+    CUDF_LIB="$CUDF_PREFIX/lib"
+fi
+
+echo "Found libcudf at: $CUDF_PREFIX"
+
+# Find RMM headers - check both locations
+if [ -f "$CUDF_PREFIX/include/rmm/rmm.hpp" ]; then
+    RMM_INCLUDE="$CUDF_PREFIX/include"
+    RMM_LIB="$CUDF_LIB"
+elif [ -d "$(dirname "$CUDF_PREFIX")/librmm/include" ]; then
+    RMM_INCLUDE="$(dirname "$CUDF_PREFIX")/librmm/include"
+    # Check for lib64 vs lib
+    if [ -d "$(dirname "$CUDF_PREFIX")/librmm/lib64" ] && [ -f "$(dirname "$CUDF_PREFIX")/librmm/lib64/librmm.so" ]; then
+        RMM_LIB="$(dirname "$CUDF_PREFIX")/librmm/lib64"
+    else
+        RMM_LIB="$(dirname "$CUDF_PREFIX")/librmm/lib"
+    fi
+else
+    # Fallback to libcudf paths
+    RMM_INCLUDE="$CUDF_PREFIX/include"
+    RMM_LIB="$CUDF_LIB"
+fi
+
+echo "Found RMM headers at: $RMM_INCLUDE"
+echo "Found RMM library at: $RMM_LIB"
+
+# Find all RAPIDS library directories (for transitive dependencies)
+RAPIDS_BASE="$(dirname "$CUDF_PREFIX")"
+RAPIDS_RPATHS="$CUDF_LIB"
+for pkg in librmm libkvikio rapids_logger; do
+    for libdir in "$RAPIDS_BASE/$pkg/lib64" "$RAPIDS_BASE/$pkg/lib"; do
+        if [ -d "$libdir" ]; then
+            RAPIDS_RPATHS="$RAPIDS_RPATHS:$libdir"
+            echo "Found $pkg library at: $libdir"
+            break
+        fi
+    done
+done
+
+# Verify libcudf shared library exists
+if [ ! -f "$CUDF_LIB/libcudf.so" ]; then
+    echo "WARNING: libcudf.so not found in $CUDF_LIB"
+    echo "         Package may fail to load at runtime."
+fi
+
+# Create symlinks in CUDF_LIB for transitive dependencies (needed because libcudf uses $ORIGIN rpath)
+echo "Creating symlinks for transitive dependencies..."
+for lib in librmm.so libkvikio.so librapids_logger.so; do
+    for pkg in librmm libkvikio rapids_logger; do
+        for libdir in "$RAPIDS_BASE/$pkg/lib64" "$RAPIDS_BASE/$pkg/lib"; do
+            if [ -f "$libdir/$lib" ] && [ ! -e "$CUDF_LIB/$lib" ]; then
+                ln -sf "$libdir/$lib" "$CUDF_LIB/$lib" 2>/dev/null && echo "  Linked $lib -> $libdir/$lib"
+            fi
+        done
+    done
+done
+
+# Generate Makevars from template
+sed -e "s|@CUDA_HOME@|$CUDA_HOME|g" \
+    -e "s|@CUDF_INCLUDE@|$CUDF_INCLUDE|g" \
+    -e "s|@CUDF_LIB@|$CUDF_LIB|g" \
+    -e "s|@RMM_INCLUDE@|$RMM_INCLUDE|g" \
+    -e "s|@RAPIDS_RPATHS@|$RAPIDS_RPATHS|g" \
+    src/Makevars.in > src/Makevars
+
+echo ""
+echo "Configuration complete. Generated src/Makevars:"
+cat src/Makevars
+echo ""
+echo "Run 'R CMD INSTALL .' to build the package."
