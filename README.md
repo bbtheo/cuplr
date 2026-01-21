@@ -2,7 +2,7 @@
 
 **GPU-accelerated dplyr. Same code, runs 30-50x faster.**
 
-Write tidyverse, get GPU speed. No CUDA, no rewrites.
+Write tidyverse, get GPU speed. A new [cuDF](https://github.com/rapidsai/cudf) backend for R, no rewrites.
 
 ```r
 library(cuplr)
