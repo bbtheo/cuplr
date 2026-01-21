@@ -26,3 +26,6 @@ R/RcppExports.R
 # OS
 .DS_Store
 Thumbs.db
+
+#other
+test_script.R
