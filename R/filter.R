@@ -25,7 +25,7 @@
 #' }
 #'
 #' ## Current limitations
-#' \itemize
+#' \itemize{
 #'   \item Only simple comparisons are supported (column op value/column)
 #'   \item Compound expressions with `&` or `|` are not yet supported
 #'   \item String comparisons are not yet implemented

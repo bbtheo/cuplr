@@ -2,25 +2,66 @@
 % Please edit documentation in R/tbl-gpu.R
 \name{tbl_gpu}
 \alias{tbl_gpu}
-\title{Create a GPU-backed tibble}
+\alias{tbl_gpu.data.frame}
+\alias{tbl_gpu.tbl_gpu}
+\title{Create a GPU-backed data frame}
 \usage{
 tbl_gpu(data, ...)
+
+\method{tbl_gpu}{data.frame}(data, ...)
+
+\method{tbl_gpu}{tbl_gpu}(data, ...)
 }
 \arguments{
-\item{data}{A data frame to transfer to GPU memory}
+\item{data}{A data frame or tibble to transfer to GPU memory. Supported
+column types include: numeric (double), integer, character, and logical.}
 
-\item{...}{Additional arguments (unused)}
+\item{...}{Additional arguments passed to methods (currently unused).}
 }
 \value{
-A \code{tbl_gpu} object
+A \code{tbl_gpu} object containing:
+\itemize{
+\item \code{ptr} - External pointer to the GPU table
+\item \code{schema} - List with column names and types
+\item \code{lazy_ops} - Pending operations (for future lazy evaluation)
+\item \code{groups} - Grouping variables (for future group_by support)
+}
 }
 \description{
-Create a GPU-backed tibble
+Transfers an R data frame to GPU memory using NVIDIA's libcudf library,
+enabling high-performance data manipulation operations. The resulting
+\code{tbl_gpu} object can be used with dplyr verbs like \code{filter()}, \code{mutate()},
+\code{select()}, and collected back to R with \code{collect()}.
+}
+\details{
+The data is immediately copied to GPU memory when \code{tbl_gpu()} is called.
+GPU memory is automatically freed when the R object is garbage collected.
+
+Column type mappings from R to GPU:
+\itemize{
+\item \code{numeric} -> FLOAT64
+\item \code{integer} -> INT32
+\item \code{character} -> STRING
+\item \code{logical} -> BOOL8 (stored as INT32)
+\item \code{Date} -> TIMESTAMP_DAYS
+\item \code{POSIXct} -> TIMESTAMP_MICROSECONDS
+}
 }
 \examples{
-if (interactive()) {
-  df <- data.frame(x = 1:1000, y = rnorm(1000))
-  gpu_df <- tbl_gpu(df)
-  gpu_df
+if (has_gpu()) {
+  # Transfer mtcars to GPU
+  gpu_mtcars <- tbl_gpu(mtcars)
+  print(gpu_mtcars)
+
+  # Chain operations
+  result <- gpu_mtcars |>
+    filter(mpg > 20) |>
+    mutate(kpl = mpg * 0.425) |>
+    collect()
 }
+}
+\seealso{
+\code{\link{collect.tbl_gpu}} to transfer data back to R,
+\code{\link{filter.tbl_gpu}}, \code{\link{mutate.tbl_gpu}},
+\code{\link{select.tbl_gpu}} for data manipulation
 }

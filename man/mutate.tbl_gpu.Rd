@@ -7,19 +7,86 @@
 \method{mutate}{tbl_gpu}(.data, ...)
 }
 \arguments{
-\item{.data}{A tbl_gpu object}
+\item{.data}{A \code{tbl_gpu} object created by \code{\link[=tbl_gpu]{tbl_gpu()}}.}
 
-\item{...}{Name-value pairs of expressions (e.g., z = x + y)}
+\item{...}{Name-value pairs of expressions. The name gives the column name
+(new or existing), and the value is an arithmetic expression involving
+existing columns and/or scalar values.}
 }
 \value{
-A tbl_gpu with new/modified columns
+A \code{tbl_gpu} object with the new or modified columns. If a column
+name already exists, it is replaced. New columns are appended.
 }
 \description{
-Create or modify columns in a GPU table
+Adds new columns or modifies existing columns in a GPU table using
+arithmetic expressions, similar to \code{dplyr::mutate()}. All computations
+are performed on the GPU for maximum performance.
+}
+\details{
+\subsection{Supported arithmetic operators}{
+
+\itemize{
+\item \code{+} - addition
+\item \code{-} - subtraction
+\item \code{*} - multiplication
+\item \code{/} - division
+\item \code{^} - exponentiation (power)
+}
+}
+
+\subsection{Column replacement behavior}{
+
+When the output column name matches an existing column, the existing
+column is replaced in-place (preserving column order). For example,
+\code{mutate(x = x + 1)} will modify \code{x} rather than creating a duplicate.
+}
+
+\subsection{Current limitations}{
+
+\itemize{
+\item Only binary operations are supported (col op value or col op col)
+\item Complex expressions like \code{(x + y) * z} are not yet supported
+\item Functions like \code{sqrt()}, \code{log()}, \code{abs()} are not yet implemented
+\item Result type is always FLOAT64 (double precision)
+}
+}
+
+\subsection{Performance}{
+
+GPU arithmetic operations are highly vectorized and can process
+billions of elements per second. Memory bandwidth is typically
+the limiting factor, not compute.
+}
 }
 \examples{
-if (interactive()) {
-  gpu_df <- tbl_gpu(mtcars)
-  gpu_df |> mutate(kpl = mpg * 0.425)
+if (has_gpu()) {
+  gpu_mtcars <- tbl_gpu(mtcars)
+
+  # Add a new column
+  result <- gpu_mtcars |>
+    mutate(kpl = mpg * 0.425) |>
+    collect()
+
+  # Modify an existing column
+  adjusted <- gpu_mtcars |>
+    mutate(mpg = mpg + 5) |>
+    collect()
+
+  # Combine two columns
+  gpu_cars <- tbl_gpu(cars)
+  result <- gpu_cars |>
+    mutate(ratio = dist / speed) |>
+    collect()
+
+  # Chain multiple mutations
+  result <- gpu_mtcars |>
+    mutate(power_weight = hp / wt) |>
+    mutate(efficiency = mpg * power_weight) |>
+    collect()
 }
+}
+\seealso{
+\code{\link{filter.tbl_gpu}} for filtering rows,
+\code{\link{select.tbl_gpu}} for selecting columns,
+\code{\link{collect.tbl_gpu}} for retrieving results
 }

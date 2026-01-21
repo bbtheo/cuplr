@@ -2,24 +2,65 @@
 % Please edit documentation in R/collect.R
 \name{collect.tbl_gpu}
 \alias{collect.tbl_gpu}
-\title{Collect GPU table back to R}
+\title{Transfer GPU table data back to R}
 \usage{
 \method{collect}{tbl_gpu}(x, ...)
 }
 \arguments{
-\item{x}{A tbl_gpu object}
+\item{x}{A \code{tbl_gpu} object created by \code{\link[=tbl_gpu]{tbl_gpu()}}.}
 
-\item{...}{Additional arguments (ignored)}
+\item{...}{Additional arguments (ignored, included for compatibility).}
 }
 \value{
-A tibble
+A \link[tibble:tibble]{tibble::tibble} containing the data from the GPU table.
+Column types are converted back to R types:
+\itemize{
+\item FLOAT64/FLOAT32 -> numeric (double)
+\item INT32/INT64 -> integer or numeric
+\item STRING -> character
+\item BOOL8 -> integer (0/1)
+}
 }
 \description{
-Transfers data from GPU memory back to an R tibble.
+Copies data from GPU memory back to R as a tibble. This is typically
+the final step in a GPU data manipulation pipeline, after filtering,
+mutating, and selecting the data you need.
+}
+\details{
+\subsection{Memory considerations}{
+
+Collecting transfers all data from GPU to CPU memory. For large datasets,
+this can be slow and memory-intensive. Best practice is to:
+\enumerate{
+\item Filter rows to reduce data volume
+\item Select only needed columns
+\item Then collect the results
+}
+}
+
+\subsection{Performance}{
+
+Data transfer between GPU and CPU is limited by PCIe bandwidth
+(typically 16-32 GB/s). For a 1 GB dataset, expect ~50-100ms transfer time.
+}
 }
 \examples{
-if (interactive()) {
-  gpu_df <- tbl_gpu(mtcars)
-  result <- gpu_df |> filter(mpg > 20) |> collect()
+if (has_gpu()) {
+  gpu_mtcars <- tbl_gpu(mtcars)
+
+  # Process on GPU, then collect
+  result <- gpu_mtcars |>
+    filter(mpg > 20) |>
+    mutate(kpl = mpg * 0.425) |>
+    select(mpg, kpl, hp) |>
+    collect()
+
+  # Result is a regular tibble
+  class(result)
+  print(result)
 }
+}
+\seealso{
+\code{\link{tbl_gpu}} for creating GPU tables,
+\code{\link{filter.tbl_gpu}}, \code{\link{select.tbl_gpu}} for reducing data
 }

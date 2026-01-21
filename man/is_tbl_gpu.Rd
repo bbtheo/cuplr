@@ -2,16 +2,23 @@
 % Please edit documentation in R/tbl-gpu.R
 \name{is_tbl_gpu}
 \alias{is_tbl_gpu}
-\title{Check if object is a tbl_gpu}
+\title{Test if an object is a GPU table}
 \usage{
 is_tbl_gpu(x)
 }
 \arguments{
-\item{x}{Object to test}
+\item{x}{An R object to test.}
 }
 \value{
-Logical
+\code{TRUE} if \code{x} is a \code{tbl_gpu} object, \code{FALSE} otherwise.
 }
 \description{
-Check if object is a tbl_gpu
+Checks whether an object inherits from the \code{tbl_gpu} class.
+}
+\examples{
+if (has_gpu()) {
+  gpu_df <- tbl_gpu(mtcars)
+  is_tbl_gpu(gpu_df)
+  is_tbl_gpu(mtcars)
+}
 }

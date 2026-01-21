@@ -7,19 +7,57 @@
 \method{select}{tbl_gpu}(.data, ...)
 }
 \arguments{
-\item{.data}{A tbl_gpu object}
+\item{.data}{A \code{tbl_gpu} object created by \code{\link[=tbl_gpu]{tbl_gpu()}}.}
 
-\item{...}{Column selection (supports tidyselect)}
+\item{...}{Column names or tidyselect expressions specifying which columns
+to keep. Supports:
+\itemize{
+\item Column names: \code{select(x, y, z)}
+\item Negative selection: \code{select(-x)} (not yet supported)
+\item Range: \code{select(x:z)} (not yet supported)
+\item Helpers: \code{starts_with()}, \code{ends_with()}, \code{contains()}, etc.
+}}
 }
 \value{
-A tbl_gpu with selected columns
+A \code{tbl_gpu} object containing only the selected columns.
+Column order matches the order specified in the selection.
 }
 \description{
-Select columns from a GPU table
+Keeps only the specified columns from a GPU table, similar to
+\code{dplyr::select()}. Supports tidyselect syntax for flexible column selection.
+}
+\details{
+Column selection creates a new GPU table with only the selected columns.
+The original data remains in GPU memory until garbage collected.
+\subsection{Performance}{
+
+Select operations involve copying column data to a new table structure.
+For very wide tables, selecting fewer columns can significantly reduce
+memory usage and improve performance of subsequent operations.
+}
 }
 \examples{
-if (interactive()) {
-  gpu_df <- tbl_gpu(mtcars)
-  gpu_df |> select(mpg, cyl, hp)
+if (has_gpu()) {
+  gpu_mtcars <- tbl_gpu(mtcars)
+
+  # Select specific columns
+  result <- gpu_mtcars |>
+    select(mpg, cyl, hp) |>
+    collect()
+
+  # Select with tidyselect helpers
+  result <- gpu_mtcars |>
+    select(starts_with("d")) |>
+    collect()
+
+  # Reorder columns
+  result <- gpu_mtcars |>
+    select(hp, mpg, wt) |>
+    collect()
 }
+}
+\seealso{
+\code{\link{filter.tbl_gpu}} for filtering rows,
+\code{\link{mutate.tbl_gpu}} for creating columns,
+\code{\link{collect.tbl_gpu}} for retrieving results
 }

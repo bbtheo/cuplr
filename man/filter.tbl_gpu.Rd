@@ -7,21 +7,76 @@
 \method{filter}{tbl_gpu}(.data, ..., .preserve = FALSE)
 }
 \arguments{
-\item{.data}{A tbl_gpu object}
+\item{.data}{A \code{tbl_gpu} object created by \code{\link[=tbl_gpu]{tbl_gpu()}}.}
 
-\item{...}{Filter expressions (e.g., x > 0, y == 5)}
+\item{...}{Logical expressions to filter by. Each expression should be
+a comparison of the form \verb{column <op> value} or \verb{column <op> column}.
+Multiple conditions are combined with AND (all must be TRUE).}
 
-\item{.preserve}{Ignored (for compatibility)}
+\item{.preserve}{Ignored. Included for compatibility with dplyr generic.}
 }
 \value{
-A filtered tbl_gpu
+A \code{tbl_gpu} object containing only rows where all conditions are TRUE.
+The GPU memory for the filtered result is newly allocated.
 }
 \description{
-Filter rows of a GPU table
+Selects rows from a GPU table where conditions are TRUE, similar to
+\code{dplyr::filter()}. Filtering is performed entirely on the GPU for
+maximum performance on large datasets.
+}
+\details{
+\subsection{Supported comparison operators}{
+
+\itemize{
+\item \code{==} - equal to
+\item \code{!=} - not equal to
+\item \code{>} - greater than
+\item \code{>=} - greater than or equal to
+\item \code{<} - less than
+\item \code{<=} - less than or equal to
+}
+}
+
+\subsection{Current limitations}{
+
+\itemize{
+\item Only simple comparisons are supported (column op value/column)
+\item Compound expressions with \code{&} or \code{|} are not yet supported
+\item String comparisons are not yet implemented
+\item Only numeric scalar values on the right-hand side
+}
+}
+
+\subsection{Performance}{
+
+Filtering on GPU is highly parallel and can process billions of rows
+per second. For best performance, chain multiple filter conditions
+rather than using compound expressions.
+}
 }
 \examples{
-if (interactive()) {
-  gpu_df <- tbl_gpu(mtcars)
-  gpu_df |> filter(mpg > 20)
+if (has_gpu()) {
+  gpu_mtcars <- tbl_gpu(mtcars)
+
+  # Filter with single condition
+  efficient_cars <- gpu_mtcars |>
+    filter(mpg > 25)
+
+  # Multiple conditions (combined with AND)
+  result <- gpu_mtcars |>
+    filter(mpg > 20) |>
+    filter(cyl == 4) |>
+    collect()
+
+  # Compare two columns
+  gpu_cars <- tbl_gpu(cars)
+  fast_stops <- gpu_cars |>
+    filter(dist < speed) |>
+    collect()
 }
+}
+\seealso{
+\code{\link{mutate.tbl_gpu}} for creating new columns,
+\code{\link{select.tbl_gpu}} for selecting columns,
+\code{\link{collect.tbl_gpu}} for retrieving results
 }

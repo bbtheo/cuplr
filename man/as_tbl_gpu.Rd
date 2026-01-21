@@ -2,18 +2,28 @@
 % Please edit documentation in R/tbl-gpu.R
 \name{as_tbl_gpu}
 \alias{as_tbl_gpu}
-\title{Convert to tbl_gpu}
+\title{Coerce to a GPU table}
 \usage{
 as_tbl_gpu(x, ...)
 }
 \arguments{
-\item{x}{Object to convert}
+\item{x}{A data frame or object coercible to a data frame.}
 
-\item{...}{Additional arguments}
+\item{...}{Additional arguments passed to \code{tbl_gpu()}.}
 }
 \value{
-A tbl_gpu object
+A \code{tbl_gpu} object with data stored on the GPU.
 }
 \description{
-Convert to tbl_gpu
+Converts a data frame or compatible object to a \code{tbl_gpu} object,
+transferring data to GPU memory.
+}
+\examples{
+if (has_gpu()) {
+  gpu_df <- as_tbl_gpu(iris)
+  print(gpu_df)
+}
+}
+\seealso{
+\code{\link{tbl_gpu}} for details on GPU table creation
 }
