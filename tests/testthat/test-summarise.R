@@ -624,3 +624,75 @@ test_that("summarize() is alias for summarise()", {
 
   expect_equal(result1, result2)
 })
+
+# =============================================================================
+# Complex Aggregation Expressions
+# =============================================================================
+
+test_that("summarise() with n(), max of expression, and sum of comparison works", {
+  skip_if_no_gpu()
+
+  gpu_df <- tbl_gpu(mtcars)
+
+  result <- gpu_df |>
+    dplyr::group_by(vs) |>
+    dplyr::summarise(
+      n = n(),
+      max_am_100 = max(am * 100),
+      n_carb_4 = sum(carb == 4)
+    ) |>
+    collect()
+
+  # Compare with R dplyr
+  r_result <- mtcars |>
+    dplyr::group_by(vs) |>
+    dplyr::summarise(
+      n = dplyr::n(),
+      max_am_100 = max(am * 100),
+      n_carb_4 = sum(carb == 4)
+    )
+
+  expect_equal(nrow(result), 2)
+  expect_true(all(c("vs", "n", "max_am_100", "n_carb_4") %in% names(result)))
+
+  # Check values for each group
+
+  for (vs_val in c(0, 1)) {
+    gpu_row <- result[result$vs == vs_val, ]
+    r_row <- r_result[r_result$vs == vs_val, ]
+
+    expect_equal(gpu_row$n, r_row$n, tolerance = 1e-10)
+    expect_equal(gpu_row$max_am_100, r_row$max_am_100, tolerance = 1e-10)
+    expect_equal(gpu_row$n_carb_4, r_row$n_carb_4, tolerance = 1e-10)
+  }
+})
+
+test_that("summarise() with min/max of arithmetic expressions works", {
+  skip_if_no_gpu()
+
+  gpu_df <- tbl_gpu(mtcars)
+
+  result <- gpu_df |>
+    dplyr::group_by(cyl) |>
+    dplyr::summarise(
+      min_hp_wt = min(hp / wt),
+      max_mpg_10 = max(mpg * 10)
+    ) |>
+    collect()
+
+  # Compare with R
+  r_result <- mtcars |>
+    dplyr::group_by(cyl) |>
+    dplyr::summarise(
+      min_hp_wt = min(hp / wt),
+      max_mpg_10 = max(mpg * 10)
+    )
+
+  for (cyl_val in c(4, 6, 8)) {
+    gpu_row <- result[result$cyl == cyl_val, ]
+    r_row <- r_result[r_result$cyl == cyl_val, ]
+
+    expect_equal(gpu_row$min_hp_wt, r_row$min_hp_wt, tolerance = 1e-10)
+    expect_equal(gpu_row$max_mpg_10, r_row$max_mpg_10, tolerance = 1e-10)
+  }
+})

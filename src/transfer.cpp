@@ -184,6 +184,8 @@ NumericVector gpu_to_numeric(const cudf::column_view& col) {
     size_type n = col.size();
     NumericVector result(n);
 
+    if (n == 0) return result;
+
     // Copy data from device to host
     cudaMemcpy(&result[0], col.data<double>(), n * sizeof(double), cudaMemcpyDeviceToHost);
 
@@ -206,6 +208,8 @@ NumericVector gpu_to_numeric(const cudf::column_view& col) {
 IntegerVector gpu_to_integer(const cudf::column_view& col) {
     size_type n = col.size();
     IntegerVector result(n);
+
+    if (n == 0) return result;
 
     cudaMemcpy(&result[0], col.data<int32_t>(), n * sizeof(int32_t), cudaMemcpyDeviceToHost);
 
