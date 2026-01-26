@@ -22,6 +22,7 @@ cuplr translates dplyr operations into cuDF execution on NVIDIA GPUs. It follows
 
 **Built on [RAPIDS cuDF](https://rapids.ai/)**: cuDF is an open-source GPU DataFrame library developed by NVIDIA's RAPIDS team. It provides optimized CUDA kernels for data manipulation operations, backed by Apache Arrow's columnar memory format. cuplr provides an R interface to this execution engine.
 
+
 ## Status
 
 **v0.0.1 – Early development**
@@ -83,3 +84,4 @@ This project is built on [RAPIDS cuDF](https://github.com/rapidsai/cudf) by NVID
 **License**: Apache 2.0
 **Maintainer**: [@bbtheo](https://github.com/bbtheo)
 **Documentation**: `DEVELOPER_GUIDE.md`
+
