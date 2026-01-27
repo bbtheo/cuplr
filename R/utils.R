@@ -1,4 +1,4 @@
-# Utility functions for cuplr
+# Utility functions for cuplyr
 
 # Type mapping from R to GPU types
 gpu_type_from_r <- function(x) {

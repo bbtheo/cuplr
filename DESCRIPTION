@@ -1,4 +1,4 @@
-Package: cuplr
+Package: cuplyr
 Title: GPU-Accelerated Data Manipulation with dplyr Syntax
 Version: 0.0.1
 Authors@R: c(
@@ -10,8 +10,8 @@ Description: Provides a dplyr backend that executes operations on NVIDIA GPUs
     group_by, summarise, and join operations with familiar tidyverse syntax
     while achieving significant speedups on large datasets.
 License: Apache License (>= 2)
-URL: https://github.com/bbtheo/cuplr
-BugReports: https://github.com/bbtheo/cuplr/issues
+URL: https://github.com/bbtheo/cuplyr
+BugReports: https://github.com/bbtheo/cuplyr/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

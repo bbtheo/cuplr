@@ -1,7 +1,7 @@
 // src/ops_arrange.cpp
 //
 // Requires libcudf >= 22.02 for stable_sorted_order and gather APIs.
-// Define CUPLR_USE_UNSTABLE_SORT=1 to fall back to unstable sort if
+// Define CUPLYR_USE_UNSTABLE_SORT=1 to fall back to unstable sort if
 // stable_sorted_order is unavailable in your cudf build.
 
 #include "gpu_table.hpp"
@@ -21,7 +21,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 SEXP gpu_arrange(SEXP xptr, IntegerVector col_indices, LogicalVector descending) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -83,7 +83,7 @@ SEXP gpu_arrange(SEXP xptr, IntegerVector col_indices, LogicalVector descending)
 
     // Phase 1: Compute sort order (memory: nrow * 4 bytes)
     // Use stable_sorted_order to match dplyr's stable sort semantics (ties preserve order)
-#ifdef CUPLR_USE_UNSTABLE_SORT
+#ifdef CUPLYR_USE_UNSTABLE_SORT
     // Fallback: unstable sort (faster but ties may reorder)
     std::unique_ptr<cudf::column> sort_indices = cudf::sorted_order(
         keys_table,

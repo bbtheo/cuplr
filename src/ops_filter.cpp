@@ -23,7 +23,7 @@ using namespace cudf;
 
 // [[Rcpp::export]]
 SEXP gpu_filter_scalar(SEXP xptr, int col_idx, std::string op, double value) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -49,7 +49,7 @@ SEXP gpu_filter_scalar(SEXP xptr, int col_idx, std::string op, double value) {
 
 // [[Rcpp::export]]
 SEXP gpu_filter_col(SEXP xptr, int col_idx, std::string op, int col_idx2) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -74,7 +74,7 @@ SEXP gpu_filter_col(SEXP xptr, int col_idx, std::string op, int col_idx2) {
 
 // [[Rcpp::export]]
 SEXP gpu_filter_bool(SEXP xptr, bool keep_all) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -89,7 +89,7 @@ SEXP gpu_filter_bool(SEXP xptr, bool keep_all) {
 
 // [[Rcpp::export]]
 SEXP gpu_filter_mask(SEXP xptr, LogicalVector mask) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);

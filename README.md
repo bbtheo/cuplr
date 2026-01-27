@@ -1,11 +1,11 @@
-# cuplr <img src="man/figures/logo.png" align="right" height="138" />
+# cuplyr <img src="man/figures/logo.png" align="right" height="138" />
 
-**dplyr backend for GPU acceleration via RAPIDS cuDF**
+#### dplyr backend for GPU acceleration via RAPIDS cuDF
 
-cuplr implements a dplyr backend powered by [RAPIDS cuDF](https://github.com/rapidsai/cudf), NVIDIA's GPU DataFrame library. It allows users to write standard dplyr code while executing operations on GPU hardware.
+cuplyr implements a dplyr backend powered by [RAPIDS cuDF](https://github.com/rapidsai/cudf), NVIDIA's GPU DataFrame library. It allows users to write standard dplyr code while executing operations on GPU hardware.
 
 ```r
-library(cuplr)
+library(cuplyr)
 
 tbl_gpu(sales_data) |>
   filter(year >= 2020, amount > 0) |>
@@ -18,9 +18,9 @@ tbl_gpu(sales_data) |>
 
 ## About
 
-cuplr translates dplyr operations into cuDF execution on NVIDIA GPUs. It follows the same backend pattern as dbplyr: write standard R code, execute on GPU hardware. This approach can provide significant speedups on larger datasets (typically >10M rows) without requiring major code changes.
+cuplyr translates dplyr operations into cuDF execution on NVIDIA GPUs. It follows the same backend pattern as dbplyr: write standard R code, execute on GPU hardware. This approach can provide significant speedups on larger datasets (typically >10M rows) without requiring major code changes.
 
-**Built on [RAPIDS cuDF](https://rapids.ai/)**: cuDF is an open-source GPU DataFrame library developed by NVIDIA's RAPIDS team. It provides optimized CUDA kernels for data manipulation operations, backed by Apache Arrow's columnar memory format. cuplr provides an R interface to this execution engine.
+**Built on [RAPIDS cuDF](https://rapids.ai/)**: cuDF is an open-source GPU DataFrame library developed by NVIDIA's RAPIDS team. It provides optimized CUDA kernels for data manipulation operations, backed by Apache Arrow's columnar memory format. cuplyr provides an R interface to this execution engine.
 
 
 ## Status

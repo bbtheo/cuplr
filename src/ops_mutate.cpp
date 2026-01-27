@@ -17,7 +17,7 @@ using namespace cudf;
 
 // [[Rcpp::export]]
 SEXP gpu_copy_column(SEXP xptr, int col_idx) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -38,7 +38,7 @@ SEXP gpu_copy_column(SEXP xptr, int col_idx) {
 
 // [[Rcpp::export]]
 SEXP gpu_mutate_binary_scalar(SEXP xptr, int col_idx, std::string op, double value) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -69,7 +69,7 @@ SEXP gpu_mutate_binary_scalar(SEXP xptr, int col_idx, std::string op, double val
 
 // [[Rcpp::export]]
 SEXP gpu_mutate_binary_scalar_replace(SEXP xptr, int col_idx, std::string op, double value, int replace_idx) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -105,7 +105,7 @@ SEXP gpu_mutate_binary_scalar_replace(SEXP xptr, int col_idx, std::string op, do
 
 // [[Rcpp::export]]
 SEXP gpu_mutate_binary_cols(SEXP xptr, int col_idx1, std::string op, int col_idx2) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -135,7 +135,7 @@ SEXP gpu_mutate_binary_cols(SEXP xptr, int col_idx1, std::string op, int col_idx
 
 // [[Rcpp::export]]
 SEXP gpu_mutate_binary_cols_replace(SEXP xptr, int col_idx1, std::string op, int col_idx2, int replace_idx) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -170,7 +170,7 @@ SEXP gpu_mutate_binary_cols_replace(SEXP xptr, int col_idx1, std::string op, int
 
 // [[Rcpp::export]]
 SEXP gpu_copy_column_replace(SEXP xptr, int source_idx, int replace_idx) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);

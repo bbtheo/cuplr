@@ -1,4 +1,4 @@
-# cuplr Agent Notes
+# cuplyr Agent Notes
 
 This repo mixes R and C++ (Rcpp) for GPU-backed dplyr-like operations using libcudf. The trickiest parts are build tooling, GPU availability, and keeping R-level schemas aligned with GPU types.
 

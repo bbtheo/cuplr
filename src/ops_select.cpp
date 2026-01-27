@@ -12,7 +12,7 @@ using namespace cudf;
 
 // [[Rcpp::export]]
 SEXP gpu_select(SEXP xptr, IntegerVector col_indices) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);

@@ -1,4 +1,4 @@
-# cuplr: GPU-Accelerated dplyr Backend via libcudf
+# cuplyr: GPU-Accelerated dplyr Backend via libcudf
 
 ## Complete Developer Reference and Implementation Blueprint
 
@@ -345,7 +345,7 @@ UseMethod("tbl_gpu")
 
 tbl_gpu.data.frame <- function(data, ...) {
 # Transfer to GPU
-ptr <- .Call(`_cuplr_df_to_gpu`, data)
+ptr <- .Call(`_cuplyr_df_to_gpu`, data)
 schema <- list(
 names = names(data),
 types = vapply(data, function(col) gpu_type_from_r(col), character(1))
@@ -455,15 +455,15 @@ We recommend **Rcpp** over cpp11 for this project because:
 
 ```cpp
 // src/gpu_table.hpp
-#ifndef CUPLR_GPU_TABLE_HPP
-#define CUPLR_GPU_TABLE_HPP
+#ifndef CUPLYR_GPU_TABLE_HPP
+#define CUPLYR_GPU_TABLE_HPP
 
 #include <Rcpp.h>
 #include <cudf/table/table.hpp>
 #include <cudf/table/table_view.hpp>
 #include <memory>
 
-namespace cuplr {
+namespace cuplyr {
 
 // Wrap cudf::table in a shared_ptr for R interop
 using GpuTablePtr = std::shared_ptr<cudf::table>;
@@ -500,9 +500,9 @@ inline cudf::table& get_table_ref(Rcpp::XPtr<GpuTablePtr> xptr) {
     return **xptr;
 }
 
-} // namespace cuplr
+} // namespace cuplyr
 
-#endif // CUPLR_GPU_TABLE_HPP
+#endif // CUPLYR_GPU_TABLE_HPP
 ```
 
 ### Data Transfer: R data.frame → GPU
@@ -521,7 +521,7 @@ inline cudf::table& get_table_ref(Rcpp::XPtr<GpuTablePtr> xptr) {
 using namespace Rcpp;
 using namespace cudf;
 
-namespace cuplr {
+namespace cuplyr {
 
 // Create GPU column from R numeric vector
 std::unique_ptr<column> numeric_to_gpu(NumericVector x) {
@@ -625,11 +625,11 @@ std::unique_ptr<column> character_to_gpu(CharacterVector x) {
     return cudf::make_strings_column(host_span, valid_span);
 }
 
-} // namespace cuplr
+} // namespace cuplyr
 
 // [[Rcpp::export]]
 SEXP df_to_gpu(DataFrame df) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     int ncol = df.size();
     CharacterVector names = df.names();
@@ -671,7 +671,7 @@ SEXP df_to_gpu(DataFrame df) {
 
 // [[Rcpp::export]]
 DataFrame gpu_to_df(SEXP xptr, CharacterVector names) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -757,7 +757,7 @@ DataFrame gpu_to_df(SEXP xptr, CharacterVector names) {
 
 // [[Rcpp::export]]
 SEXP gpu_filter_gt(SEXP xptr, int col_idx, double value) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -787,7 +787,7 @@ SEXP gpu_filter_gt(SEXP xptr, int col_idx, double value) {
 // More flexible filter with expression support
 // [[Rcpp::export]]
 SEXP gpu_filter_mask(SEXP tbl_xptr, SEXP mask_xptr, int mask_col_idx) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> tbl_ptr(tbl_xptr);
     Rcpp::XPtr<GpuTablePtr> mask_ptr(mask_xptr);
@@ -855,7 +855,7 @@ direnv allow .
 **Development workflow (local loop):**
 
 ```bash
-cd cuplr                    # Environment auto-activates via direnv
+cd cuplyr                    # Environment auto-activates via direnv
 
 pixi run configure          # Regenerate Makevars when paths change
 pixi run install            # Rebuild package after C++ changes
@@ -887,7 +887,7 @@ The `pixi.lock` file ensures reproducible builds across machines. Commit it to v
 ### DESCRIPTION File
 
 ```
-Package: cuplr
+Package: cuplyr
 Title: GPU-Accelerated Data Manipulation with dplyr Syntax
 Version: 0.0.1
 Authors@R: c(
@@ -899,8 +899,8 @@ Description: Provides a dplyr backend that executes operations on NVIDIA GPUs
     group_by, summarise, and join operations with familiar tidyverse syntax
     while achieving significant speedups on large datasets.
 License: Apache License (>= 2)
-URL: https://github.com/bbtheo/cuplr
-BugReports: https://github.com/bbtheo/cuplr/issues
+URL: https://github.com/bbtheo/cuplyr
+BugReports: https://github.com/bbtheo/cuplyr/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
@@ -979,7 +979,7 @@ importFrom(dplyr,summarise)
 importFrom(dplyr,summarize)
 importFrom(dplyr,ungroup)
 importFrom(rlang,"%||%")
-useDynLib(cuplr, .registration = TRUE)
+useDynLib(cuplyr, .registration = TRUE)
 ```
 
 ### Configure Script
@@ -988,7 +988,7 @@ useDynLib(cuplr, .registration = TRUE)
 #!/bin/bash
 # configure - Detect CUDA and libcudf, generate src/Makevars
 
-echo "Configuring cuplr..."
+echo "Configuring cuplyr..."
 
 # Default paths
 CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
@@ -1087,7 +1087,7 @@ echo "Run 'R CMD INSTALL .' to build the package."
 ### Dockerfile
 
 ```dockerfile
-# Dockerfile for cuplr development and CI
+# Dockerfile for cuplyr development and CI
 # Based on RAPIDS CUDA 12 developer image
 
 ARG RAPIDS_VERSION=25.12
@@ -1097,7 +1097,7 @@ ARG UBUNTU_VERSION=22.04
 FROM nvcr.io/nvidia/rapidsai/base:${RAPIDS_VERSION}-cuda${CUDA_VERSION}-py3.11-amd64
 
 LABEL maintainer="your@email.com"
-LABEL description="cuplr development environment with RAPIDS libcudf"
+LABEL description="cuplyr development environment with RAPIDS libcudf"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -1134,16 +1134,16 @@ RUN R -e "install.packages(c( \
     'devtools', 'roxygen2', 'pkgdown' \
 ), repos='https://cloud.r-project.org')"
 
-# Set environment variables for cuplr build
+# Set environment variables for cuplyr build
 ENV CUDA_HOME=/usr/local/cuda
 ENV CUDF_HOME=/opt/conda
 ENV LD_LIBRARY_PATH=/opt/conda/lib:${LD_LIBRARY_PATH}
 
 # Create working directory
-WORKDIR /cuplr
+WORKDIR /cuplyr
 
 # Copy package source
-COPY . /cuplr
+COPY . /cuplyr
 
 # Configure and build
 RUN chmod +x configure && \
@@ -1151,7 +1151,7 @@ RUN chmod +x configure && \
     R CMD INSTALL .
 
 # Run tests by default
-CMD ["R", "-e", "testthat::test_package('cuplr')"]
+CMD ["R", "-e", "testthat::test_package('cuplyr')"]
 ```
 
 ### GitHub Actions CI
@@ -1202,13 +1202,13 @@ jobs:
         run: R CMD build .
 
       - name: Check package
-        run: R CMD check cuplr_*.tar.gz --no-manual
+        run: R CMD check cuplyr_*.tar.gz --no-manual
 
       - name: Install package
-        run: R CMD INSTALL cuplr_*.tar.gz
+        run: R CMD INSTALL cuplyr_*.tar.gz
 
       - name: Run tests
-        run: R -e "testthat::test_package('cuplr')"
+        run: R -e "testthat::test_package('cuplyr')"
 
   benchmark:
     needs: build
@@ -1243,7 +1243,7 @@ jobs:
 ### Directory Structure
 
 ```
-cuplr/
+cuplyr/
 ├── DESCRIPTION
 ├── NAMESPACE
 ├── LICENSE
@@ -1282,7 +1282,7 @@ cuplr/
 │       ├── test-basic.R
 │       ├── test-filter.R
 │       ├── test-mutate.R
-│       └── helper-cuplr.R
+│       └── helper-cuplyr.R
 └── man/
     └── (generated by roxygen2)
 ```
@@ -1290,7 +1290,7 @@ cuplr/
 ### R/zzz.R - Package Load Hook
 
 ```r
-#' @useDynLib cuplr, .registration = TRUE
+#' @useDynLib cuplyr, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 NULL
 
@@ -1303,13 +1303,13 @@ NULL
 
   # Set package options
   op <- options()
-  op.cuplr <- list(
-    cuplr.verbose = FALSE,
-    cuplr.lazy = TRUE,
-    cuplr.gpu_available = gpu_ok
+  op.cuplyr <- list(
+    cuplyr.verbose = FALSE,
+    cuplyr.lazy = TRUE,
+    cuplyr.gpu_available = gpu_ok
   )
-  toset <- !(names(op.cuplr) %in% names(op))
-  if (any(toset)) options(op.cuplr[toset])
+  toset <- !(names(op.cuplyr) %in% names(op))
+  if (any(toset)) options(op.cuplyr[toset])
 
   invisible()
 }
@@ -1322,13 +1322,13 @@ NULL
     free_gb <- round(info$free_memory / 1e9, 1)
 
     msg <- paste0(
-      "cuplr: GPU-accelerated data manipulation\n",
+      "cuplyr: GPU-accelerated data manipulation\n",
       "GPU: ", info$name, " (", info$compute_capability, ")\n",
       "Memory: ", free_gb, " GB free / ", total_gb, " GB total"
     )
   } else {
     msg <- paste0(
-      "cuplr: GPU-accelerated data manipulation\n",
+      "cuplyr: GPU-accelerated data manipulation\n",
       "WARNING: No GPU detected. Package will not function correctly."
     )
   }
@@ -1359,7 +1359,7 @@ tbl_gpu <- function(data, ...) {
 #' @export
 tbl_gpu.data.frame <- function(data, ...) {
   # Transfer to GPU
-  ptr <- .Call(`_cuplr_df_to_gpu`, data)
+  ptr <- .Call(`_cuplyr_df_to_gpu`, data)
 
   schema <- list(
     names = names(data),
@@ -1435,7 +1435,7 @@ dim.tbl_gpu <- function(x) {
   if (is.null(x$ptr)) {
     c(NA_integer_, length(x$schema$names))
   } else {
-    .Call(`_cuplr_gpu_dim`, x$ptr)
+    .Call(`_cuplyr_gpu_dim`, x$ptr)
   }
 }
 
@@ -1823,8 +1823,8 @@ extract_column_refs <- function(node) {
 # R/lower.R - Convert AST to libcudf operations
 
 lower_to_cudf <- function(tbl, ops) {
-  if (getOption("cuplr.verbose", FALSE)) {
-    message("cuplr: Lowering ", length(ops), " operations to libcudf")
+  if (getOption("cuplyr.verbose", FALSE)) {
+    message("cuplyr: Lowering ", length(ops), " operations to libcudf")
   }
 
   for (op in ops) {
@@ -1835,7 +1835,7 @@ lower_to_cudf <- function(tbl, ops) {
 }
 
 lower_op <- function(tbl, op) {
-  if (getOption("cuplr.verbose", FALSE)) {
+  if (getOption("cuplyr.verbose", FALSE)) {
     message("  -> ", op$type)
   }
 
@@ -1861,11 +1861,11 @@ lower_filter <- function(tbl, op) {
       mask_ptr <- pred_mask
     } else {
       # AND masks together
-      mask_ptr <- .Call(`_cuplr_gpu_and_masks`, mask_ptr, pred_mask)
+      mask_ptr <- .Call(`_cuplyr_gpu_and_masks`, mask_ptr, pred_mask)
     }
   }
 
-  new_ptr <- .Call(`_cuplr_gpu_apply_mask`, tbl$ptr, mask_ptr)
+  new_ptr <- .Call(`_cuplyr_gpu_apply_mask`, tbl$ptr, mask_ptr)
 
   new_tbl_gpu(
     ptr = new_ptr,
@@ -1886,7 +1886,7 @@ evaluate_predicate <- function(tbl, pred) {
       cli::cli_abort("Unsupported predicate operator: {pred$operator}")
     )
 
-    .Call(`_cuplr_gpu_binary_op`, left, right, op_code)
+    .Call(`_cuplyr_gpu_binary_op`, left, right, op_code)
   } else {
     cli::cli_abort("Cannot evaluate predicate: {class(pred)[1]}")
   }
@@ -1895,14 +1895,14 @@ evaluate_predicate <- function(tbl, pred) {
 evaluate_expr <- function(tbl, expr) {
   if (inherits(expr, "ast_column_ref")) {
     col_idx <- match(expr$name, tbl$schema$names) - 1L
-    .Call(`_cuplr_gpu_get_column`, tbl$ptr, col_idx)
+    .Call(`_cuplyr_gpu_get_column`, tbl$ptr, col_idx)
   } else if (inherits(expr, "ast_literal")) {
-    .Call(`_cuplr_gpu_scalar`, expr$value)
+    .Call(`_cuplyr_gpu_scalar`, expr$value)
   } else if (inherits(expr, "ast_binary_op")) {
     left <- evaluate_expr(tbl, expr$left)
     right <- evaluate_expr(tbl, expr$right)
     op_code <- match(expr$operator, c("+", "-", "*", "/", "^", "%%", "%/%"))
-    .Call(`_cuplr_gpu_binary_op`, left, right, op_code)
+    .Call(`_cuplyr_gpu_binary_op`, left, right, op_code)
   } else {
     cli::cli_abort("Cannot evaluate expression: {class(expr)[1]}")
   }
@@ -1912,13 +1912,13 @@ evaluate_expr <- function(tbl, expr) {
 ### Verbose Mode Output Example
 
 ```
-> options(cuplr.verbose = TRUE)
+> options(cuplyr.verbose = TRUE)
 > tbl_gpu(df) %>% filter(x > 10, y < 50) %>% mutate(z = x + y) %>% collect()
 
-cuplr: Executing 2 lazy operations
-cuplr: Optimizing AST...
+cuplyr: Executing 2 lazy operations
+cuplyr: Optimizing AST...
   -> Fused 2 filter predicates
-cuplr: Lowering 2 operations to libcudf
+cuplyr: Lowering 2 operations to libcudf
   -> filter
      cudf::binary_operation(col[0], scalar(10), GREATER) -> mask1
      cudf::binary_operation(col[1], scalar(50), LESS) -> mask2
@@ -1948,14 +1948,14 @@ cuplr: Lowering 2 operations to libcudf
 | Performance | Benchmark against dplyr | `inst/benchmarks/` |
 | Edge cases | NA handling, empty tables, types | `tests/testthat/test-edge-cases.R` |
 
-### tests/testthat/helper-cuplr.R
+### tests/testthat/helper-cuplyr.R
 
 ```r
 # Test helper functions
 
 skip_if_no_gpu <- function() {
   skip_if_not(
-    getOption("cuplr.gpu_available", FALSE),
+    getOption("cuplyr.gpu_available", FALSE),
     "No GPU available for testing"
   )
 }
@@ -2125,7 +2125,7 @@ test_that("join operations match dplyr", {
 ```r
 # inst/benchmarks/run_benchmarks.R
 
-library(cuplr)
+library(cuplyr)
 library(dplyr)
 library(bench)
 
@@ -2133,7 +2133,7 @@ library(bench)
 sizes <- c(1e5, 1e6, 1e7, 1e8)
 results <- list()
 
-cat("cuplr Benchmark Suite\n")
+cat("cuplyr Benchmark Suite\n")
 cat("=====================\n\n")
 
 for (n in sizes) {
@@ -2217,29 +2217,29 @@ cat("Results saved to inst/benchmarks/results/benchmark_results.rds\n")
 #'
 #' @param enabled Logical, whether to enable verbose mode
 #' @export
-cuplr_verbose <- function(enabled = TRUE) {
-  options(cuplr.verbose = enabled)
+cuplyr_verbose <- function(enabled = TRUE) {
+  options(cuplyr.verbose = enabled)
   if (enabled) {
-    message("cuplr: Verbose mode enabled")
+    message("cuplyr: Verbose mode enabled")
   }
   invisible(enabled)
 }
 
 # Internal logging function
-log_cuplr <- function(..., level = "INFO") {
-  if (!getOption("cuplr.verbose", FALSE)) return(invisible())
+log_cuplyr <- function(..., level = "INFO") {
+  if (!getOption("cuplyr.verbose", FALSE)) return(invisible())
 
   timestamp <- format(Sys.time(), "%H:%M:%S.%OS3")
-  msg <- paste0("[cuplr ", timestamp, " ", level, "] ", ...)
+  msg <- paste0("[cuplyr ", timestamp, " ", level, "] ", ...)
   message(msg)
 }
 
 log_op <- function(op_name, ...) {
-  log_cuplr("OP: ", op_name, " - ", ...)
+  log_cuplyr("OP: ", op_name, " - ", ...)
 }
 
 log_cudf_call <- function(fn_name, ...) {
-  log_cuplr("CUDF: ", fn_name, "(", paste(..., sep = ", "), ")")
+  log_cuplyr("CUDF: ", fn_name, "(", paste(..., sep = ", "), ")")
 }
 ```
 
@@ -2320,12 +2320,12 @@ dump_ast_node <- function(node, indent, index = NULL) {
 #' @return A list with GPU device information
 #' @export
 gpu_info <- function() {
-  info <- .Call(`_cuplr_gpu_info`)
-  structure(info, class = "cuplr_gpu_info")
+  info <- .Call(`_cuplyr_gpu_info`)
+  structure(info, class = "cuplyr_gpu_info")
 }
 
 #' @export
-print.cuplr_gpu_info <- function(x, ...) {
+print.cuplyr_gpu_info <- function(x, ...) {
   cat("GPU Device Information\n")
   cat("======================\n")
   cat("Device:       ", x$name, "\n")
@@ -2397,7 +2397,7 @@ Rcpp::List gpu_info_impl() {
 ### Example Verbose Output
 
 ```
-> options(cuplr.verbose = TRUE)
+> options(cuplyr.verbose = TRUE)
 > df <- data.frame(x = 1:1e6, y = runif(1e6), g = sample(letters, 1e6, TRUE))
 > result <- tbl_gpu(df) %>%
 +   filter(x > 500000) %>%
@@ -2405,18 +2405,18 @@ Rcpp::List gpu_info_impl() {
 +   summarise(mean_y = mean(y)) %>%
 +   collect()
 
-[cuplr 14:23:15.123 INFO] OP: tbl_gpu - Transferring 1000000 x 3 data.frame to GPU
-[cuplr 14:23:15.456 INFO] CUDF: creating table with 3 columns
-[cuplr 14:23:15.457 INFO] OP: filter - Adding lazy operation
-[cuplr 14:23:15.457 INFO] OP: group_by - Adding lazy operation
-[cuplr 14:23:15.457 INFO] OP: summarise - Adding lazy operation
-[cuplr 14:23:15.458 INFO] OP: collect - Materializing lazy pipeline
-[cuplr 14:23:15.458 INFO] Optimizing 3 operations...
-[cuplr 14:23:15.458 INFO] CUDF: binary_operation(col[0], scalar(500000), GREATER)
-[cuplr 14:23:15.512 INFO] CUDF: apply_boolean_mask(table, mask)
-[cuplr 14:23:15.534 INFO] CUDF: groupby::groupby(keys=[2])
-[cuplr 14:23:15.535 INFO] CUDF: groupby::aggregate(mean on col[1])
-[cuplr 14:23:15.589 INFO] CUDF: Transferring result 26 x 2 to R
+[cuplyr 14:23:15.123 INFO] OP: tbl_gpu - Transferring 1000000 x 3 data.frame to GPU
+[cuplyr 14:23:15.456 INFO] CUDF: creating table with 3 columns
+[cuplyr 14:23:15.457 INFO] OP: filter - Adding lazy operation
+[cuplyr 14:23:15.457 INFO] OP: group_by - Adding lazy operation
+[cuplyr 14:23:15.457 INFO] OP: summarise - Adding lazy operation
+[cuplyr 14:23:15.458 INFO] OP: collect - Materializing lazy pipeline
+[cuplyr 14:23:15.458 INFO] Optimizing 3 operations...
+[cuplyr 14:23:15.458 INFO] CUDF: binary_operation(col[0], scalar(500000), GREATER)
+[cuplyr 14:23:15.512 INFO] CUDF: apply_boolean_mask(table, mask)
+[cuplyr 14:23:15.534 INFO] CUDF: groupby::groupby(keys=[2])
+[cuplyr 14:23:15.535 INFO] CUDF: groupby::aggregate(mean on col[1])
+[cuplyr 14:23:15.589 INFO] CUDF: Transferring result 26 x 2 to R
 ```
 
 ---
@@ -2445,7 +2445,7 @@ SEXP gpu_filter_mutate_fused(
     int mutate_col,
     double mutate_factor
 ) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -2559,7 +2559,7 @@ gpu_chunked <- function(df, chunk_size = 1e7, fn) {
 #' @param device_id Integer device ID (0-indexed)
 #' @export
 set_gpu_device <- function(device_id) {
-  .Call(`_cuplr_set_device`, as.integer(device_id))
+  .Call(`_cuplyr_set_device`, as.integer(device_id))
   invisible(device_id)
 }
 
@@ -2568,7 +2568,7 @@ set_gpu_device <- function(device_id) {
 #' @return Integer count of GPUs
 #' @export
 gpu_count <- function() {
-  .Call(`_cuplr_device_count`)
+  .Call(`_cuplyr_device_count`)
 }
 
 #' Distribute work across multiple GPUs
@@ -2691,7 +2691,7 @@ as_nanoarrow_array_stream.tbl_gpu <- function(x, ...) {
   }
 
   # Get Arrow C Data Interface pointers from GPU table
-  arrow_ptrs <- .Call(`_cuplr_export_to_arrow`, x$ptr)
+  arrow_ptrs <- .Call(`_cuplyr_export_to_arrow`, x$ptr)
 
   # Wrap in nanoarrow
   nanoarrow::nanoarrow_pointer_import(
@@ -2710,7 +2710,7 @@ tbl_gpu.nanoarrow_array_stream <- function(data, ...) {
   schema_ptr <- nanoarrow::nanoarrow_pointer_export(data)
 
   # Import to GPU via cudf's Arrow integration
-  gpu_ptr <- .Call(`_cuplr_import_from_arrow`, schema_ptr)
+  gpu_ptr <- .Call(`_cuplyr_import_from_arrow`, schema_ptr)
 
   # Build schema from Arrow metadata
   schema <- extract_schema_from_arrow(data)
@@ -2742,7 +2742,7 @@ tbl_gpu.ArrowTabular <- function(data, ...) {
 // Export cudf table to Arrow C Data Interface
 // [[Rcpp::export]]
 Rcpp::List export_to_arrow(SEXP xptr) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
@@ -2780,7 +2780,7 @@ SEXP import_from_arrow(SEXP schema_xptr, SEXP array_xptr) {
     auto arrow_table = arrow::Table::FromRecordBatches({result.ValueOrDie()});
     auto cudf_table = cudf::from_arrow(*arrow_table.ValueOrDie());
 
-    return cuplr::make_gpu_table_xptr(std::move(cudf_table));
+    return cuplyr::make_gpu_table_xptr(std::move(cudf_table));
 }
 ```
 
@@ -2894,7 +2894,7 @@ http://www.apache.org/licenses/
 
 ### Why Not CRAN
 
-CRAN distribution is **not recommended** for cuplr because:
+CRAN distribution is **not recommended** for cuplyr because:
 
 1. **Binary dependencies**: libcudf, CUDA runtime not available on CRAN build servers
 2. **GPU requirement**: CRAN check servers don't have GPUs
@@ -2917,11 +2917,11 @@ CRAN distribution is **not recommended** for cuplr because:
 {% set version = "0.1.0" %}
 
 package:
-  name: r-cuplr
+  name: r-cuplyr
   version: {{ version }}
 
 source:
-  git_url: https://github.com/yourorg/cuplr
+  git_url: https://github.com/yourorg/cuplyr
   git_rev: v{{ version }}
 
 build:
@@ -2963,17 +2963,17 @@ requirements:
 
 test:
   commands:
-    - $R -e "library(cuplr)"
-    - $R -e "cuplr::gpu_info()"  # [gpu]
+    - $R -e "library(cuplyr)"
+    - $R -e "cuplyr::gpu_info()"  # [gpu]
 
 about:
-  home: https://github.com/yourorg/cuplr
+  home: https://github.com/yourorg/cuplyr
   license: Apache-2.0
   license_family: Apache
   license_file: LICENSE
   summary: GPU-accelerated dplyr backend using RAPIDS libcudf
   description: |
-    cuplr provides a dplyr-compatible interface for GPU-accelerated
+    cuplyr provides a dplyr-compatible interface for GPU-accelerated
     data manipulation using NVIDIA's RAPIDS libcudf library.
 
 extra:
@@ -3002,7 +3002,7 @@ R CMD INSTALL --build .
 ### Release Checklist
 
 ```markdown
-## Release Checklist for cuplr v{VERSION}
+## Release Checklist for cuplyr v{VERSION}
 
 ### Pre-release
 - [ ] All tests pass locally with GPU
@@ -3033,7 +3033,7 @@ R CMD INSTALL --build .
 ### Workflow 1: Basic Data Analysis
 
 ```r
-library(cuplr)
+library(cuplyr)
 library(dplyr)
 
 # Check GPU is available
@@ -3079,16 +3079,16 @@ print(result)
 **Lowered libcudf calls** (with verbose mode):
 
 ```
-[cuplr] CUDF: binary_operation(col[year], scalar(2020), GREATER_EQUAL) -> mask1
-[cuplr] CUDF: binary_operation(col[amount], scalar(0), GREATER) -> mask2
-[cuplr] CUDF: binary_operation(mask1, mask2, BITWISE_AND) -> mask_combined
-[cuplr] CUDF: apply_boolean_mask(table, mask_combined)
-[cuplr] CUDF: binary_operation(col[amount], col[price], MUL) -> revenue_col
-[cuplr] CUDF: binary_operation(col[month], scalar(3), DIV) -> temp
-[cuplr] CUDF: unary_operation(temp, CEIL) -> quarter_col
-[cuplr] CUDF: groupby::groupby(keys=[region, quarter])
-[cuplr] CUDF: groupby::aggregate([sum(revenue), mean(amount), count(*)])
-[cuplr] CUDF: sort(by=[total_revenue], order=[DESC])
+[cuplyr] CUDF: binary_operation(col[year], scalar(2020), GREATER_EQUAL) -> mask1
+[cuplyr] CUDF: binary_operation(col[amount], scalar(0), GREATER) -> mask2
+[cuplyr] CUDF: binary_operation(mask1, mask2, BITWISE_AND) -> mask_combined
+[cuplyr] CUDF: apply_boolean_mask(table, mask_combined)
+[cuplyr] CUDF: binary_operation(col[amount], col[price], MUL) -> revenue_col
+[cuplyr] CUDF: binary_operation(col[month], scalar(3), DIV) -> temp
+[cuplyr] CUDF: unary_operation(temp, CEIL) -> quarter_col
+[cuplyr] CUDF: groupby::groupby(keys=[region, quarter])
+[cuplyr] CUDF: groupby::aggregate([sum(revenue), mean(amount), count(*)])
+[cuplyr] CUDF: sort(by=[total_revenue], order=[DESC])
 ```
 
 ### Workflow 2: Joining Large Tables
@@ -3373,12 +3373,12 @@ sed -i 's/rapidsai\/base:25.12/rapidsai\/base:26.02/g' Dockerfile
 # In Docker environment
 ./configure
 R CMD build .
-R CMD check cuplr_*.tar.gz
+R CMD check cuplyr_*.tar.gz
 ```
 
 ### 4. Run Full Test Suite
 ```bash
-R -e "testthat::test_package('cuplr')"
+R -e "testthat::test_package('cuplyr')"
 ```
 
 ### 5. Update Feature Detection
@@ -3387,8 +3387,8 @@ If new APIs are available:
 # R/compat.R
 has_cudf_feature <- function(feature) {
   switch(feature,
-    "distinct_count" = .Call(`_cuplr_has_distinct_count`),
-    "regex_replace" = packageVersion("cuplr") >= "0.2.0",
+    "distinct_count" = .Call(`_cuplyr_has_distinct_count`),
+    "regex_replace" = packageVersion("cuplyr") >= "0.2.0",
     FALSE
   )
 }
@@ -3413,7 +3413,7 @@ CUDA_SUPPORT_MATRIX <- list(
 check_cuda_compat <- function(rapids_version = NULL) {
   # Detect RAPIDS version if not specified
   if (is.null(rapids_version)) {
-    rapids_version <- .Call(`_cuplr_rapids_version`)
+    rapids_version <- .Call(`_cuplyr_rapids_version`)
   }
 
   compat <- CUDA_SUPPORT_MATRIX[[rapids_version]]
@@ -3422,8 +3422,8 @@ check_cuda_compat <- function(rapids_version = NULL) {
     return(invisible(FALSE))
   }
 
-  cuda_version <- .Call(`_cuplr_cuda_version`)
-  driver_version <- .Call(`_cuplr_driver_version`)
+  cuda_version <- .Call(`_cuplyr_cuda_version`)
+  driver_version <- .Call(`_cuplyr_driver_version`)
 
   issues <- character()
 
@@ -3454,8 +3454,8 @@ check_cuda_compat <- function(rapids_version = NULL) {
 ```r
 # R/deprecated.R
 
-#' @name cuplr-deprecated
-#' @title Deprecated functions in cuplr
+#' @name cuplyr-deprecated
+#' @title Deprecated functions in cuplyr
 #'
 #' These functions are deprecated and will be removed in future versions.
 NULL
@@ -3474,7 +3474,7 @@ gpu_table <- function(...) {
 ### Migration Guide Template (Planned)
 
 ```markdown
-## Migrating from cuplr 0.x to 1.0
+## Migrating from cuplyr 0.x to 1.0
 
 ### Breaking Changes
 
@@ -3521,18 +3521,18 @@ gpu_table <- function(...) {
 | # | Deliverable | Status | Location |
 |---|-------------|--------|----------|
 | 1 | Developer Guide (this document) | ✓ | `DEVELOPER_GUIDE.md` |
-| 2 | R Package Skeleton | ✓ | `cuplr/` directory |
-| 3 | Unit Tests (6+) | ✓ | `cuplr/tests/testthat/` |
-| 4 | Integration Tests (2+) | ✓ | `cuplr/tests/testthat/test-integration.R` |
-| 5 | GitHub Actions CI | ✓ | `cuplr/.github/workflows/ci.yml` |
-| 6 | Benchmark Scripts | ✓ | `cuplr/inst/benchmarks/` |
-| 7 | Conda Recipe | ✓ | `cuplr/recipe/meta.yaml` |
-| 8 | Dockerfile | ✓ | `cuplr/inst/docker/Dockerfile` |
+| 2 | R Package Skeleton | ✓ | `cuplyr/` directory |
+| 3 | Unit Tests (6+) | ✓ | `cuplyr/tests/testthat/` |
+| 4 | Integration Tests (2+) | ✓ | `cuplyr/tests/testthat/test-integration.R` |
+| 5 | GitHub Actions CI | ✓ | `cuplyr/.github/workflows/ci.yml` |
+| 6 | Benchmark Scripts | ✓ | `cuplyr/inst/benchmarks/` |
+| 7 | Conda Recipe | ✓ | `cuplyr/recipe/meta.yaml` |
+| 8 | Dockerfile | ✓ | `cuplyr/inst/docker/Dockerfile` |
 
 ### Package File Inventory
 
 ```
-cuplr/
+cuplyr/
 ├── DESCRIPTION                 # Package metadata
 ├── NAMESPACE                   # Exports and imports
 ├── LICENSE                     # Apache 2.0
@@ -3575,7 +3575,7 @@ cuplr/
 ├── tests/
 │   ├── testthat.R             # Test runner
 │   └── testthat/
-│       ├── helper-cuplr.R     # Test helpers
+│       ├── helper-cuplyr.R     # Test helpers
 │       ├── test-basic.R       # Basic functionality
 │       ├── test-filter.R      # Filter tests
 │       ├── test-mutate.R      # Mutate tests
@@ -3774,7 +3774,7 @@ compute(gpu_df)
 gpu_info()
 
 # Verbose mode
-options(cuplr.verbose = TRUE)
+options(cuplyr.verbose = TRUE)
 
 # Memory monitoring
 with_gpu_monitor({
@@ -3820,17 +3820,17 @@ ldconfig -p | grep libcudf
 pkg-config --libs cudf
 
 # Check R can find library
-R -e ".Call('_cuplr_check_gpu')"
+R -e ".Call('_cuplyr_check_gpu')"
 
 # Full diagnostics
-R -e "cuplr::gpu_info()"
+R -e "cuplyr::gpu_info()"
 ```
 
 ### Memory Debugging
 
 ```r
 # Track allocations
-options(cuplr.verbose = TRUE)
+options(cuplyr.verbose = TRUE)
 
 # Force garbage collection
 gc()

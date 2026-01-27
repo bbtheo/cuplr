@@ -1,7 +1,7 @@
 FROM rapidsai/base:25.12-cuda12-py3.11
 
 LABEL maintainer="your@email.com"
-LABEL description="cuplr development environment with RAPIDS libcudf"
+LABEL description="cuplyr development environment with RAPIDS libcudf"
 
 # Switch to root for installing packages
 USER root
@@ -48,12 +48,12 @@ ENV CUDF_HOME=/opt/conda
 ENV PATH=/opt/conda/bin:${PATH}
 ENV LD_LIBRARY_PATH=/opt/conda/lib:${LD_LIBRARY_PATH}
 
-WORKDIR /cuplr
+WORKDIR /cuplyr
 
-COPY . /cuplr
+COPY . /cuplyr
 
 #RUN chmod +x configure && \
 #    ./configure && \
 #    R CMD INSTALL .
 
-#CMD ["R", "-e", "testthat::test_package('cuplr')"]
+#CMD ["R", "-e", "testthat::test_package('cuplyr')"]

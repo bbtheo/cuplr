@@ -18,7 +18,7 @@
 using namespace Rcpp;
 using namespace cudf;
 
-namespace cuplr {
+namespace cuplyr {
 
 // Create GPU column from R numeric vector
 std::unique_ptr<column> numeric_to_gpu(NumericVector x) {
@@ -433,11 +433,11 @@ CharacterVector gpu_to_character(const cudf::column_view& col) {
     return result;
 }
 
-} // namespace cuplr
+} // namespace cuplyr
 
 // [[Rcpp::export]]
 IntegerVector gpu_dim(SEXP xptr) {
-    using namespace cuplr;
+    using namespace cuplyr;
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);
 
@@ -446,7 +446,7 @@ IntegerVector gpu_dim(SEXP xptr) {
 
 // [[Rcpp::export]]
 List gpu_head(SEXP xptr, int n, CharacterVector col_names) {
-    using namespace cuplr;
+    using namespace cuplyr;
     using namespace cudf;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
@@ -568,7 +568,7 @@ List gpu_head(SEXP xptr, int n, CharacterVector col_names) {
 
 // [[Rcpp::export]]
 CharacterVector gpu_col_types(SEXP xptr) {
-    using namespace cuplr;
+    using namespace cuplyr;
     using namespace cudf;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
@@ -602,7 +602,7 @@ CharacterVector gpu_col_types(SEXP xptr) {
 
 // [[Rcpp::export]]
 SEXP df_to_gpu(DataFrame df) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     int ncol = df.size();
     std::vector<std::unique_ptr<cudf::column>> columns;
@@ -644,7 +644,7 @@ SEXP df_to_gpu(DataFrame df) {
 
 // [[Rcpp::export]]
 List gpu_collect(SEXP xptr, CharacterVector col_names) {
-    using namespace cuplr;
+    using namespace cuplyr;
     using namespace cudf;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);

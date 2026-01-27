@@ -16,7 +16,7 @@
 using namespace Rcpp;
 using namespace cudf;
 
-namespace cuplr {
+namespace cuplyr {
 
 std::unique_ptr<cudf::groupby_aggregation> get_groupby_agg(const std::string& agg_type) {
     if (agg_type == "sum") {
@@ -39,12 +39,12 @@ std::unique_ptr<cudf::groupby_aggregation> get_groupby_agg(const std::string& ag
     return nullptr;
 }
 
-} // namespace cuplr
+} // namespace cuplyr
 
 // [[Rcpp::export]]
 SEXP gpu_summarise(SEXP xptr, IntegerVector group_indices,
                    IntegerVector agg_col_indices, CharacterVector agg_types) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);
     cudf::table_view view = get_table_view(ptr);

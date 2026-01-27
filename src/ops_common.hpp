@@ -1,12 +1,12 @@
-#ifndef CUPLR_OPS_COMMON_HPP
-#define CUPLR_OPS_COMMON_HPP
+#ifndef CUPLYR_OPS_COMMON_HPP
+#define CUPLYR_OPS_COMMON_HPP
 
 #include <Rcpp.h>
 #include <cudf/binaryop.hpp>
 
 #include <string>
 
-namespace cuplr {
+namespace cuplyr {
 
 inline cudf::binary_operator get_compare_op(const std::string& op) {
     if (op == "==") return cudf::binary_operator::EQUAL;
@@ -29,6 +29,6 @@ inline cudf::binary_operator get_arith_op(const std::string& op) {
     Rcpp::stop("Unknown arithmetic operator: %s", op.c_str());
 }
 
-} // namespace cuplr
+} // namespace cuplyr
 
-#endif // CUPLR_OPS_COMMON_HPP
+#endif // CUPLYR_OPS_COMMON_HPP

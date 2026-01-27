@@ -1,5 +1,5 @@
 # Synthetic data generation for benchmarking
-# comparison: dplyr vs cuplr vs data.table
+# comparison: dplyr vs cuplyr vs data.table
 
 library(dplyr)
 library(data.table)
@@ -30,7 +30,7 @@ data <- as.data.frame(data_dt)  # Convert to data.frame for dplyr
 
 N_ITER <- 3
 
-run_benchmark <- function(name, dplyr_expr, cuplr_expr, dt_expr, data, data_dt, 
+run_benchmark <- function(name, dplyr_expr, cuplyr_expr, dt_expr, data, data_dt, 
                           dt_modifies = FALSE, n_iter = N_ITER) {
   cat(sprintf("\n=== %s ===\n", name))
   
@@ -65,13 +65,13 @@ run_benchmark <- function(name, dplyr_expr, cuplr_expr, dt_expr, data, data_dt,
   }
   rm(result)
 
-  # Fresh GPU data for cuplr
+  # Fresh GPU data for cuplyr
   data_gpu <- as_tbl_gpu(data)
 
-  # Benchmark cuplr
-  cuplr_times <- numeric(n_iter)
+  # Benchmark cuplyr
+  cuplyr_times <- numeric(n_iter)
   for (i in seq_len(n_iter)) {
-    cuplr_times[i] <- system.time({ result <- cuplr_expr(data_gpu) })["elapsed"]
+    cuplyr_times[i] <- system.time({ result <- cuplyr_expr(data_gpu) })["elapsed"]
   }
   rm(result)
 
@@ -87,17 +87,17 @@ run_benchmark <- function(name, dplyr_expr, cuplr_expr, dt_expr, data, data_dt,
               median(dt_times) * 1000,
               min(dt_times) * 1000,
               max(dt_times) * 1000))
-  cat(sprintf("  cuplr:      median %.1f ms (range: %.1f - %.1f)\n",
-              median(cuplr_times) * 1000,
-              min(cuplr_times) * 1000,
-              max(cuplr_times) * 1000))
-  cat(sprintf("  speedup vs dplyr:      data.table %.1fx | cuplr %.1fx\n", 
+  cat(sprintf("  cuplyr:      median %.1f ms (range: %.1f - %.1f)\n",
+              median(cuplyr_times) * 1000,
+              min(cuplyr_times) * 1000,
+              max(cuplyr_times) * 1000))
+  cat(sprintf("  speedup vs dplyr:      data.table %.1fx | cuplyr %.1fx\n", 
               median(dplyr_times) / median(dt_times),
-              median(dplyr_times) / median(cuplr_times)))
-  cat(sprintf("  speedup vs data.table: cuplr %.1fx\n",
-              median(dt_times) / median(cuplr_times)))
+              median(dplyr_times) / median(cuplyr_times)))
+  cat(sprintf("  speedup vs data.table: cuplyr %.1fx\n",
+              median(dt_times) / median(cuplyr_times)))
 
-  invisible(list(dplyr = dplyr_times, dt = dt_times, cuplr = cuplr_times))
+  invisible(list(dplyr = dplyr_times, dt = dt_times, cuplyr = cuplyr_times))
 }
 
 # Group & Summarise (read-only, no copy needed)
@@ -111,7 +111,7 @@ run_benchmark(
   dt_expr = function(d) {
     d[, .(mean_fare = mean(fare_amount, na.rm = TRUE), total_trips = .N), by = VendorID]
   },
-  cuplr_expr = function(d) {
+  cuplyr_expr = function(d) {
     d |>
       group_by(VendorID) |>
       summarise(mean_fare = mean(fare_amount), total_trips = n()) |>
@@ -136,7 +136,7 @@ run_benchmark(
     d[, `:=`(tip_pct = tip_amount / fare_amount * 100,
              total = fare_amount + tip_amount + tolls_amount)]
   },
-  cuplr_expr = function(d) {
+  cuplyr_expr = function(d) {
     d |>
       mutate(tip_pct = tip_amount / fare_amount) |>
       mutate(tip_pct = tip_pct * 100) |>
@@ -159,7 +159,7 @@ run_benchmark(
   dt_expr = function(d) {
     d[fare_amount > 10 & tip_amount > 0 & trip_distance > 1]
   },
-  cuplr_expr = function(d) {
+  cuplyr_expr = function(d) {
     d |>
       filter(fare_amount > 10, tip_amount > 0, trip_distance > 1) |>
       collect()
@@ -190,7 +190,7 @@ run_benchmark(
               trips = .N),
           by = .(VendorID, payment_type)]
   },
-  cuplr_expr = function(d) {
+  cuplyr_expr = function(d) {
     d |>
       filter(fare_amount > 0, trip_distance > 0) |>
       mutate(fare_per_mile = fare_amount / trip_distance) |>

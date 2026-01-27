@@ -1,4 +1,4 @@
-#' @useDynLib cuplr, .registration = TRUE
+#' @useDynLib cuplyr, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom rlang %||%
 NULL
@@ -11,13 +11,13 @@ NULL
 
   # Set package options
   op <- options()
-  op.cuplr <- list(
-    cuplr.verbose = FALSE,
-    cuplr.lazy = TRUE,
-    cuplr.gpu_available = gpu_ok
+  op.cuplyr <- list(
+    cuplyr.verbose = FALSE,
+    cuplyr.lazy = TRUE,
+    cuplyr.gpu_available = gpu_ok
   )
-  toset <- !(names(op.cuplr) %in% names(op))
-  if (any(toset)) options(op.cuplr[toset])
+  toset <- !(names(op.cuplyr) %in% names(op))
+  if (any(toset)) options(op.cuplyr[toset])
 
   invisible()
 }
@@ -31,13 +31,13 @@ NULL
     free_gb <- round(info$free_memory / 1e9, 1)
 
     msg <- paste0(
-      "cuplr: GPU-accelerated data manipulation\n",
+      "cuplyr: GPU-accelerated data manipulation\n",
       "GPU: ", info$name, " (", info$compute_capability, ")\n",
       "Memory: ", free_gb, " GB free / ", total_gb, " GB total"
     )
   } else {
     msg <- paste0(
-      "cuplr: GPU-accelerated data manipulation\n",
+      "cuplyr: GPU-accelerated data manipulation\n",
       "WARNING: No GPU detected. Package will not function correctly."
     )
   }

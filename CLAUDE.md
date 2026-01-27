@@ -1,4 +1,4 @@
-# cuplr – Notes for Coding Agents
+# cuplyr – Notes for Coding Agents
 
 GPU-backed dplyr API in R with C++/Rcpp bindings to libcudf.
 
@@ -45,7 +45,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 SEXP gpu_<verb>(SEXP xptr, /* params */) {
-    using namespace cuplr;
+    using namespace cuplyr;
 
     // 1. Get table view
     Rcpp::XPtr<GpuTablePtr> ptr(xptr);

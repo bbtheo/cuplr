@@ -1,4 +1,4 @@
-# Integration tests for cuplr
+# Integration tests for cuplyr
 #
 # These tests verify:
 # - Complete pipelines work correctly

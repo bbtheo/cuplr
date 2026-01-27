@@ -1,13 +1,13 @@
 // src/gpu_table.hpp
-#ifndef CUPLR_GPU_TABLE_HPP
-#define CUPLR_GPU_TABLE_HPP
+#ifndef CUPLYR_GPU_TABLE_HPP
+#define CUPLYR_GPU_TABLE_HPP
 
 #include <Rcpp.h>
 #include <cudf/table/table.hpp>
 #include <cudf/table/table_view.hpp>
 #include <memory>
 
-namespace cuplr {
+namespace cuplyr {
 
 // Wrap cudf::table in a shared_ptr for R interop
 using GpuTablePtr = std::shared_ptr<cudf::table>;
@@ -44,6 +44,6 @@ inline cudf::table& get_table_ref(Rcpp::XPtr<GpuTablePtr> xptr) {
     return **xptr;
 }
 
-} // namespace cuplr
+} // namespace cuplyr
 
-#endif // CUPLR_GPU_TABLE_HPP
+#endif // CUPLYR_GPU_TABLE_HPP

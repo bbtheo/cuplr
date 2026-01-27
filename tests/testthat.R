@@ -2,6 +2,6 @@
 # It is read by testthat when running tests.
 
 library(testthat)
-library(cuplr)
+library(cuplyr)
 
-test_check("cuplr")
+test_check("cuplyr")

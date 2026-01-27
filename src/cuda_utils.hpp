@@ -1,10 +1,10 @@
-#ifndef CUPLR_CUDA_UTILS_HPP
-#define CUPLR_CUDA_UTILS_HPP
+#ifndef CUPLYR_CUDA_UTILS_HPP
+#define CUPLYR_CUDA_UTILS_HPP
 
 #include <Rcpp.h>
 #include <cuda_runtime.h>
 
-namespace cuplr {
+namespace cuplyr {
 
 inline void check_cuda(cudaError_t err, const char* context) {
     if (err != cudaSuccess) {
@@ -12,6 +12,6 @@ inline void check_cuda(cudaError_t err, const char* context) {
     }
 }
 
-} // namespace cuplr
+} // namespace cuplyr
 
-#endif // CUPLR_CUDA_UTILS_HPP
+#endif // CUPLYR_CUDA_UTILS_HPP
