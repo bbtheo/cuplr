@@ -57,7 +57,7 @@ tbl_gpu <- function(data, ...) {
 #' @rdname tbl_gpu
 #' @export
 tbl_gpu.data.frame <- function(data, ...) {
- ptr <- df_to_gpu(data)
+  ptr <- wrap_gpu_call("tbl_gpu", df_to_gpu(data))
 
   schema <- list(
     names = names(data),
@@ -160,7 +160,7 @@ dim.tbl_gpu <- function(x) {
   if (is.null(x$ptr)) {
     c(NA_integer_, length(x$schema$names))
   } else {
-    gpu_dim(x$ptr)
+    wrap_gpu_call("dim", gpu_dim(x$ptr))
   }
 }
 
