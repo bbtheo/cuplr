@@ -27,7 +27,7 @@ cuplyr translates dplyr operations into cuDF execution on NVIDIA GPUs. It follow
 
 **v0.0.1 – Early development**
 
-This is experimental software under active development.
+This is experimental software under active development. Breaking changes should be expected.
 
 ### Supported operations
 
@@ -36,6 +36,7 @@ This is experimental software under active development.
 - `mutate()` – column transformations and arithmetic
 - `arrange()` – row sorting with `desc()` support, NA handling follows dplyr conventions
 - `group_by()` + `summarise()` – grouped aggregations (`sum`, `mean`, `min`, `max`, `n`)
+- `left_join()`, `right_join()`, `inner_join()`, `full_join()` – GPU joins on key columns
 - `collect()` – transfer results back to R
 
 ### Supported column types
@@ -50,7 +51,6 @@ This is experimental software under active development.
 
 ### Not yet implemented
 
-- `left_join()`, `right_join()`, `inner_join()`, `full_join()`
 - Complex joins with `join_by()`
 - Expression optimization and lazy evaluation
 - Window functions, string operations
@@ -86,4 +86,3 @@ This project is built on [RAPIDS cuDF](https://github.com/rapidsai/cudf) by NVID
 **Maintainer**: [@bbtheo](https://github.com/bbtheo)
 
 **Documentation**: `DEVELOPER_GUIDE.md`
-
